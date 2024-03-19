@@ -457,6 +457,8 @@ clearmapnext:
 ; Read APIC Address from MSR
 	mov ecx, 0x0000001B		; APIC_BASE
 	rdmsr				; Returns APIC in EDX:EAX
+	; TODO check bit 11 is enabled just to be sure
+	; TODO also check if bit 10 is already enabled
 	and eax, 0xFFFFF000		; Clear lower 12 bits
 	shl rdx, 32			; Shift lower 32 bits to upper 32 bits
 	add rax, rdx
