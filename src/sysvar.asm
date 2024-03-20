@@ -9,7 +9,7 @@
 message: db 10, 'Pure64 OK', 10
 
 ;CONFIG
-cfg_smpinit:		db 1		; By default SMP is enabled. Set to 0 to disable.
+cfg_smpinit:		db 1				; By default SMP is enabled. Set to 0 to disable.
 
 ; Memory locations
 E820Map:		equ 0x0000000000004000
@@ -22,26 +22,26 @@ VBEModeInfoBlock:	equ 0x0000000000005F00		; 256 bytes
 
 ; DQ - Starting at offset 0, increments by 0x8
 p_ACPITableAddress:	equ SystemVariables + 0x00
-p_LocalAPICAddress:	equ SystemVariables + 0x10
+p_LocalAPICAddress:	equ SystemVariables + 0x10	; The address of the APIC/x2APIC
 p_Counter_Timer:	equ SystemVariables + 0x18
 p_Counter_RTC:		equ SystemVariables + 0x20
 p_HPETAddress:		equ SystemVariables + 0x28
 
 ; DD - Starting at offset 0x80, increments by 4
 p_BSP:			equ SystemVariables + 0x80
-p_mem_amount:		equ SystemVariables + 0x84	; in MiB
+p_mem_amount:		equ SystemVariables + 0x84	; MiB
+p_cpu_activated:	equ SystemVariables + 0x88
+p_cpu_detected:		equ SystemVariables + 0x8C
+p_cpu_speed:		equ SystemVariables + 0x90	; MegaHertz
 
 ; DW - Starting at offset 0x100, increments by 2
-p_cpu_speed:		equ SystemVariables + 0x100
-p_cpu_activated:	equ SystemVariables + 0x102
-p_cpu_detected:		equ SystemVariables + 0x104
-p_PCIECount:		equ SystemVariables + 0x106
+p_PCIECount:		equ SystemVariables + 0x100
 
 ; DB - Starting at offset 0x180, increments by 1
 p_IOAPICCount:		equ SystemVariables + 0x180
 p_BootMode:		equ SystemVariables + 0x181	; 'U' for UEFI, otherwise BIOS
 p_IOAPICIntSourceC:	equ SystemVariables + 0x182
-p_x2APIC:		equ SystemVariables + 0x183
+p_x2APIC:		equ SystemVariables + 0x183	; 1 if the x2APIC is supported
 
 align 16
 GDTR32:					; Global Descriptors Table Register

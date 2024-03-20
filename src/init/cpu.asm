@@ -105,14 +105,9 @@ avx_supported:
 avx_not_supported:
 
 ; Enable x2APIC if it is supported
-;	mov al, [p_x2APIC]
-;	cmp al, 1
-;	jne init_cpu_APIC
-;	mov ecx, 0x0000001B		; APIC_BASE
-;	rdmsr				; Returns APIC in EDX:EAX
-;	bts eax, 10			; Set Enable x2APIC mode (Bit 10)
-;
-;init_cpu_x2APIC:
+	mov al, [p_x2APIC]
+	cmp al, 1
+	je init_cpu_x2APIC
 
 ; Enable and Configure Local APIC
 init_cpu_APIC:
@@ -148,6 +143,50 @@ init_cpu_APIC:
 	mov ecx, APIC_ID
 	call apic_read			; APIC ID is stored in bits 31:24
 	shr rax, 24			; AL now holds the CPU's APIC ID (0 - 255)
+	mov rdi, 0x00005700		; The location where the cpu values are stored
+	add rdi, rax			; RDI points to InfoMap CPU area + APIC ID. ex 0x5701 would be APIC ID 1
+	mov al, 1
+	stosb
+
+	ret
+
+init_cpu_x2APIC:
+	mov ecx, 0x0000001B		; APIC_BASE
+	rdmsr				; Returns APIC in EDX:EAX
+	bts eax, 10			; Set Enable x2APIC mode (Bit 10)
+	wrmsr				; Enable the x2APIC
+
+	mov ecx, x2APIC_TPR
+	mov eax, 0x00000020
+	call x2apic_write		; Disable softint delivery
+	mov ecx, x2APIC_LVT_TMR
+	mov eax, 0x00010000
+	call x2apic_write		; Disable timer interrupts
+	mov ecx, x2APIC_LVT_PERF
+	mov eax, 0x00010000
+	call x2apic_write		; Disable performance counter interrupts
+	mov ecx, x2APIC_LDR
+	xor eax, eax
+	call x2apic_write		; Set Logical Destination Register
+	mov ecx, x2APIC_DFR
+	not eax				; Set EAX to 0xFFFFFFFF; Bits 31-28 set for Flat Mode
+	call x2apic_write		; Set Destination Format Register
+	mov ecx, x2APIC_LVT_LINT0
+	mov eax, 0x00008700		; Bit 15 (1 = Level), Bits 10:8 for Ext
+	call x2apic_write		; Enable normal external interrupts
+	mov ecx, x2APIC_LVT_LINT1
+	mov eax, 0x00000400
+	call x2apic_write		; Enable normal NMI processing
+	mov ecx, x2APIC_LVT_ERR
+	mov eax, 0x00010000
+	call x2apic_write		; Disable error interrupts
+	; TODO check version bit 24, if 1 set bit 12 of SPURIOUS to disable EOI Broadcast
+	mov ecx, x2APIC_SPURIOUS
+	mov eax, 0x000011FF
+	call x2apic_write		; Enable APIC (bit 8), and set spurious vector to 0xFF
+
+	mov ecx, x2APIC_ID
+	call x2apic_read		; Return the x2APIC ID in EAX
 	mov rdi, 0x00005700		; The location where the cpu values are stored
 	add rdi, rax			; RDI points to InfoMap CPU area + APIC ID. ex 0x5701 would be APIC ID 1
 	mov al, 1

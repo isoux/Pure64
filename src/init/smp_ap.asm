@@ -134,14 +134,6 @@ clearcs64_ap:
 	lgdt [GDTR64]			; Load the GDT
 	lidt [IDTR64]			; load IDT register
 
-; Enable Local APIC on AP
-;	mov rsi, [p_LocalAPICAddress]
-;	add rsi, 0x00f0			; Offset to Spurious Interrupt Register
-;	mov rdi, rsi
-;	lodsd
-;	or eax, 0000000100000000b
-;	stosd
-
 	call init_cpu			; Setup CPU
 
 	sti				; Activate interrupts for SMP
